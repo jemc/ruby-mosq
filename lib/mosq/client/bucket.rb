@@ -23,10 +23,13 @@ module Mosq
           type:    :connect,
           status:  status,
           message: case status
-                   when 0; "success"
+                   when 0; "connection accepted"
                    when 1; "connection refused (unacceptable protocol version)"
                    when 2; "connection refused (identifier rejected)"
                    when 3; "connection refused (broker unavailable)"
+                   when 4; "connection refused (bad user name or password)"
+                   when 5; "connection refused (not authorised)"
+                   when 6; "connection refused (unknown reason)"
                    else    "unknown connection failure"
                    end,
         }
