@@ -1,0 +1,47 @@
+
+require 'rake/clean'
+require 'ffi'
+
+FILES = {}
+
+task :default => [:build, :compact]
+
+def self.file_task(filename, opts, &block)
+  name, dep = opts.is_a?(Hash) ? opts.to_a.first : [opts, nil]
+  
+  FILES[name] = filename
+  CLEAN.include filename
+  task name => filename
+  
+  if dep
+    file filename => FILES[dep], &block
+  else
+    file filename, &block
+  end
+end
+
+def cmd(string)
+  fail "Command failed: #{string}" unless system(string)
+end
+
+file_task 'mosquitto.tar.gz', :download_tarball do
+  version = "1.4.2"
+  release = "http://mosquitto.org/files/source/mosquitto-#{version}.tar.gz"
+  cmd "wget -O #{FILES[:download_tarball]} #{release}"
+end
+
+file_task 'mosquitto', :download => :download_tarball do
+  cmd "tar -zxf #{FILES[:download_tarball]}"
+  cmd "mv mosquitto-* #{FILES[:download]}"
+end
+
+file_task "libmosquitto.#{::FFI::Platform::LIBSUFFIX}", :build => :download do
+  cmd "/usr/bin/env sh -c 'cd #{FILES[:download]} && env CFLAGS=-g make'"
+  cmd "cp #{FILES[:download]}/lib/#{FILES[:build]}* ./#{FILES[:build]}"
+end
+
+task :compact => FILES[:build] do
+  FILES.each do |key, filename|
+    cmd "rm -rf #{filename}" unless key == :build
+  end
+end

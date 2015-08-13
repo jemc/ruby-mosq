@@ -1,0 +1,5 @@
+*.gem
+Gemfile.lock
+ext/mosq/mosquitto.tar.gz
+ext/mosq/mosquitto
+ext/mosq/libmosquitto.so
