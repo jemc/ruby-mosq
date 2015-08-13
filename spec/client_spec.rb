@@ -179,7 +179,7 @@ describe Mosq::Client do
       received.should eq true
     end
     
-    it "can publish many concurrent messages" do
+    it "can subscribe to many topics and publish many messages" do
       topics   = 500.times.map { |i| "#{topic}/#{i}" }
       payloads = topics.map { payload }
       
@@ -189,13 +189,15 @@ describe Mosq::Client do
         subject.break! if received.size == topics.size
       end
       
-      topics.each do |topic|
-        subject.subscribe(topic, qos: 2)
-      end
+      subject.subscribe_many(topics, qos: 2).should eq subject
       
       subject.publish_many(topics.zip(payloads), qos: 2, retain: false)
+        .should eq subject
       
       subject.run_loop!
+      
+      subject.unsubscribe_many(topics).should eq subject
+      
       received.each do |message|
         topic = message[:topic]
         topics.should include topic

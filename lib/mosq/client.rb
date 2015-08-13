@@ -182,7 +182,49 @@ module Mosq
       self
     end
     
-    # Publish many pairs of topic/payload as messages.
+    # Subscribe to many topics. This is more performant than many calls
+    # to {#subscribe}, as the transactions occur concurrently.
+    #
+    # @param topics [Array<String>] The topic patterns to subscribe to.
+    # @param qos [Integer] The QoS level to use for all publish transaction.
+    # @return [Client] This client.
+    #
+    def subscribe_many(topics, qos: 0)
+      packet_ids = []
+      topics.each do |topic|
+        Util.error_check "subscribing to many topics",
+          FFI.mosquitto_subscribe(ptr, @packet_id_ptr, topic, qos)
+        
+        packet_ids << @packet_id_ptr.read_int
+      end
+      
+      fetch_responses(:subscribe, packet_ids)
+      
+      self
+    end
+    
+    # Unsubscribe from many topics. This is more performant than many calls
+    # to {#unsubscribe}, as the transactions occur concurrently.
+    #
+    # @param topics [Array<String>] The topic patterns to unsubscribe from.
+    # @return [Client] This client.
+    #
+    def unsubscribe_many(topics)
+      packet_ids = []
+      topics.each do |topic|
+        Util.error_check "subscribing to many topics",
+          FFI.mosquitto_unsubscribe(ptr, @packet_id_ptr, topic)
+        
+        packet_ids << @packet_id_ptr.read_int
+      end
+      
+      fetch_responses(:unsubscribe, packet_ids)
+      
+      self
+    end
+    
+    # Publish many pairs of topic/payload as messages. This is more performant
+    # than many calls to {#publish}, as the transactions occur concurrently.
     #
     # @param pairs [Array<Array(String, String)>] The topic/payload pairs.
     # @param qos [Integer] The QoS level to use for all publish transaction.
