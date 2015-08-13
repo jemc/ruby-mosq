@@ -182,6 +182,28 @@ module Mosq
       self
     end
     
+    # Publish many pairs of topic/payload as messages.
+    #
+    # @param pairs [Array<Array(String, String)>] The topic/payload pairs.
+    # @param qos [Integer] The QoS level to use for all publish transaction.
+    # @param retain [Boolean] Whether the broker should retain the messages.
+    # @return [Client] This client.
+    #
+    def publish_many(pairs, qos: 0, retain: false)
+      packet_ids = []
+      pairs.each do |topic, payload|
+        Util.error_check "publishing many messages",
+          FFI.mosquitto_publish(ptr, @packet_id_ptr,
+            topic, payload.bytesize, payload, qos, retain)
+        
+        packet_ids << @packet_id_ptr.read_int
+      end
+      
+      fetch_responses(:publish, packet_ids)
+      
+      self
+    end
+    
     # Fetch and handle events in a loop that blocks the calling thread.
     # The loop will continue until the {#break!} method is called from within
     # an event handler, or until the given timeout duration has elapsed.
@@ -303,7 +325,8 @@ module Mosq
     end
     
     # Internal implementation of synchronous responses.
-    def fetch_response(expected_type, expected_packet_id, timeout=protocol_timeout, start=Time.now)
+    def fetch_response(expected_type, expected_packet_id,
+                       timeout=protocol_timeout, start=Time.now)
       unwanted_events = []
       
       while (event = fetch_next_event(timeout, start))
@@ -320,6 +343,34 @@ module Mosq
       end
       
       raise FFI::Error::Timeout, "waiting for #{expected_type} response"
+    end
+    
+    # Internal implementation of multiple outstanding synchronous responses.
+    def fetch_responses(expected_type, expected_packet_ids,
+                        timeout=protocol_timeout, start=Time.now)
+      unwanted_events = []
+      wanted_events   = []
+      
+      while (event = fetch_next_event(timeout, start))
+        if (event.fetch(:type) == expected_type) && (
+            expected_packet_ids.include?(event.fetch(:packet_id))
+          )
+          wanted_events.push(event)
+        else
+          unwanted_events.push(event)
+        end
+        
+        if wanted_events.size >= expected_packet_ids.size
+          unwanted_events.reverse_each { |e| @bucket.events.unshift(e) }
+          wanted_events.each do |event|
+            handle_incoming_event(event)
+          end
+          
+          return wanted_events
+        end
+      end
+      
+      raise FFI::Error::Timeout, "waiting for #{expected_type} responses"
     end
   end
 end

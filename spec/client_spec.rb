@@ -179,6 +179,38 @@ describe Mosq::Client do
       received.should eq true
     end
     
+    it "can publish many concurrent messages" do
+      topics   = 500.times.map { |i| "#{topic}/#{i}" }
+      payloads = topics.map { payload }
+      
+      received = []
+      subject.on :message do |message|
+        received << message
+        subject.break! if received.size == topics.size
+      end
+      
+      topics.each do |topic|
+        subject.subscribe(topic, qos: 2)
+      end
+      
+      subject.publish_many(topics.zip(payloads), qos: 2, retain: false)
+      
+      subject.run_loop!
+      received.each do |message|
+        topic = message[:topic]
+        topics.should include topic
+        topics.delete(topic)
+        
+        message.should eq ({
+          type:     :message,
+          topic:    message[:topic],
+          payload:  payload,
+          retained: false,
+          qos:      2,
+        })
+      end
+    end
+    
     describe "timeout" do
       describe "remaining_timeout" do
         it "returns nil when given a timeout of nil" do
