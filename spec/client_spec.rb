@@ -213,6 +213,12 @@ describe Mosq::Client do
       end
     end
     
+    it "doesn't stall when 'many' is zero-length" do
+      subject.subscribe_many([])
+      subject.publish_many([])
+      subject.unsubscribe_many([])
+    end
+    
     describe "timeout" do
       describe "remaining_timeout" do
         it "returns nil when given a timeout of nil" do

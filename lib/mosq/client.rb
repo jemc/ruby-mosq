@@ -390,6 +390,7 @@ module Mosq
     # Internal implementation of multiple outstanding synchronous responses.
     def fetch_responses(expected_type, expected_packet_ids,
                         timeout=protocol_timeout, start=Time.now)
+      return [] if expected_packet_ids.empty?
       unwanted_events = []
       wanted_events   = []
       
