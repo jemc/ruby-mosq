@@ -44,7 +44,8 @@ module Mosq
     def heartbeat; @options.fetch(:heartbeat); end
     
     # The maximum time interval the user application should wait between
-    # yielding control back to the client object by calling run_loop!.
+    # yielding control back to the client object by calling methods like
+    # {#run_loop!} and {#run_immediate!}.
     def max_poll_interval
       @options.fetch(:heartbeat) / 2.0
     end
