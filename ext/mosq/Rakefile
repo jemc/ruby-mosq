@@ -36,9 +36,15 @@ file_task 'mosquitto', :download => :download_tarball do
 end
 
 file_task "libmosquitto.#{::FFI::Platform::LIBSUFFIX}", :build => :download do
-  mkflags = "WITH_THREADING=no WITH_SRV=no WITH_UUID=false"
-  cmd "/usr/bin/env sh -c 'cd #{FILES[:download]} && make #{mkflags}'"
-  cmd "cp #{FILES[:download]}/lib/#{FILES[:build]}* ./#{FILES[:build]}"
+  begin
+    mkflags = "WITH_THREADING=no WITH_SRV=no WITH_UUID=no"
+    cmd "/usr/bin/env sh -c 'cd #{FILES[:download]} && make #{mkflags}'"
+    cmd "cp #{FILES[:download]}/lib/#{FILES[:build]}* ./#{FILES[:build]}"
+  rescue RuntimeError # make won't work on OSX, asking to use cmake instead.
+    cmkflags = "-DWITH_THREADING=OFF -DWITH_SRV=OFF"
+    cmd "/usr/bin/env sh -c 'cd #{FILES[:download]} && cmake . #{cmkflags} && make'"
+    cmd "cp #{FILES[:download]}/lib/#{FILES[:build]} ./#{FILES[:build]}"
+  end
 end
 
 task :compact => FILES[:build] do
