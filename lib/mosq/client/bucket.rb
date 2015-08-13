@@ -5,15 +5,23 @@ module Mosq
     # @api private
     class Bucket
       def initialize(ptr)
-        FFI.mosquitto_connect_callback_set     ptr, method(:on_connect)
-        # FFI.mosquitto_disconnect_callback_set  ptr, method(:on_disconnect)
-        FFI.mosquitto_publish_callback_set     ptr, method(:on_publish)
-        FFI.mosquitto_message_callback_set     ptr, method(:on_message)
-        FFI.mosquitto_subscribe_callback_set   ptr, method(:on_subscribe)
-        FFI.mosquitto_unsubscribe_callback_set ptr, method(:on_unsubscribe)
-        # FFI.mosquitto_log_callback_set         ptr, method(:on_log)
+        @events    = []
+        @callbacks = {}
         
-        @events = []
+        FFI.mosquitto_connect_callback_set     ptr, new_callback(:on_connect)
+        # FFI.mosquitto_disconnect_callback_set  ptr, new_callback(:on_disconnect)
+        FFI.mosquitto_publish_callback_set     ptr, new_callback(:on_publish)
+        FFI.mosquitto_message_callback_set     ptr, new_callback(:on_message)
+        FFI.mosquitto_subscribe_callback_set   ptr, new_callback(:on_subscribe)
+        FFI.mosquitto_unsubscribe_callback_set ptr, new_callback(:on_unsubscribe)
+        # FFI.mosquitto_log_callback_set         ptr, new_callback(:on_log)
+      end
+      
+      def new_callback(symbol)
+        # This ensures that callback Procs are retained in the Bucket,
+        # and are not garbage-collected for the entire life of the Client.
+        # If the callback Procs are garbage-collected then invoked, SIGSEGV!
+        @callbacks[symbol] = method(symbol).to_proc
       end
       
       attr_reader :events
