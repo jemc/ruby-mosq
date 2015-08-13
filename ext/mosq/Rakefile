@@ -36,7 +36,8 @@ file_task 'mosquitto', :download => :download_tarball do
 end
 
 file_task "libmosquitto.#{::FFI::Platform::LIBSUFFIX}", :build => :download do
-  cmd "/usr/bin/env sh -c 'cd #{FILES[:download]} && env CFLAGS=-g make'"
+  mkflags = "WITH_THREADING=no WITH_SRV=no WITH_UUID=false"
+  cmd "/usr/bin/env sh -c 'cd #{FILES[:download]} && make #{mkflags}'"
   cmd "cp #{FILES[:download]}/lib/#{FILES[:build]}* ./#{FILES[:build]}"
 end
 
