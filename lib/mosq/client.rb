@@ -14,7 +14,8 @@ module Mosq
     def initialize(*args)
       @options = Util.connection_info(*args)
       
-      @options[:heartbeat] ||= 30 # seconds
+      @options[:max_in_flight] ||= 20 # messages
+      @options[:heartbeat]     ||= 30 # seconds
       @protocol_timeout = DEFAULT_PROTOCOL_TIMEOUT
       
       Util.null_check "creating the client",
@@ -36,12 +37,13 @@ module Mosq
       end
     end
     
-    def username;  @options.fetch(:username);  end
-    def password;  @options.fetch(:password);  end
-    def host;      @options.fetch(:host);      end
-    def port;      @options.fetch(:port);      end
-    def ssl?;      @options.fetch(:ssl);       end
-    def heartbeat; @options.fetch(:heartbeat); end
+    def username;      @options.fetch(:username);      end
+    def password;      @options.fetch(:password);      end
+    def host;          @options.fetch(:host);          end
+    def port;          @options.fetch(:port);          end
+    def ssl?;          @options.fetch(:ssl);           end
+    def heartbeat;     @options.fetch(:heartbeat);     end
+    def max_in_flight; @options.fetch(:max_in_flight); end
     
     # The maximum time interval the user application should wait between
     # yielding control back to the client object by calling methods like
@@ -59,6 +61,9 @@ module Mosq
     # Initiate the connection with the server.
     # It is necessary to call this before any other communication.
     def start
+      Util.error_check "configuring the maximum number of inflight messages",
+        FFI.mosquitto_max_inflight_messages_set(ptr, @options[:max_in_flight])
+      
       Util.error_check "configuring the username and password",
         FFI.mosquitto_username_pw_set(ptr, @options[:usernam], @options[:password])
       

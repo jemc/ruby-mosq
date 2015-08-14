@@ -6,7 +6,8 @@ require 'spec_helper'
 describe Mosq::Client do
   let(:subject_class) { Mosq::Client }
   
-  its(:heartbeat) { should eq 30 } # default value
+  its(:heartbeat)     { should eq 30 } # default value
+  its(:max_in_flight) { should eq 20 } # default value
   
   describe "destroy" do
     it "is not necessary to call" do
