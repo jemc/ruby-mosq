@@ -1,8 +1,8 @@
 
 Gem::Specification.new do |s|
   s.name         = 'mosq'
-  s.version      = '0.1.0'
-  s.date         = '2015-08-13'
+  s.version      = '0.2.0'
+  s.date         = '2015-08-14'
   s.summary      = 'mosq'
   s.description  = 'A Ruby MQTT client library based on FFI bindings for libmosquitto.'
   s.authors      = ['Joe McIlvain']
