@@ -50,7 +50,7 @@ module Mosq
       }
       if uri
         # TODO: support IPv6
-        pattern = %r{\A(?<schema>mqtts?)://((?<username>[^:]+):(?<password>[^@]+)@)?(?<host>[^:]+)(:(?<port>\d+))?\Z}
+        pattern = %r{\A(?<schema>mqtts?)://((?<username>[^:@]+)(:(?<password>[^@]+))?@)?(?<host>[^:]+)(:(?<port>\d+))?\Z}
         match = pattern.match(uri)
         if match
           info[:ssl]  = ("mqtts" == match[:schema])

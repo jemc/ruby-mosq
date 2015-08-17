@@ -39,6 +39,15 @@ describe Mosq::Util do
         port: 1883,
         ssl:  false
       )
+      
+      subject.connection_info(
+        "mqtt://username@host:1234"
+      ).should eq(
+        username: "username",
+        host:     "host",
+        port:     1234,
+        ssl:      false
+      )
     end
     
     it "given an SSL URL parses values from the URL" do
