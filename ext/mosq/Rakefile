@@ -25,7 +25,7 @@ def cmd(string)
 end
 
 file_task 'mosquitto.tar.gz', :download_tarball do
-  version = "1.4.2"
+  version = "1.4.3"
   release = "http://mosquitto.org/files/source/mosquitto-#{version}.tar.gz"
   cmd "wget -O #{FILES[:download_tarball]} #{release}"
 end

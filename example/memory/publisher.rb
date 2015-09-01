@@ -7,7 +7,7 @@ require 'mosq'
 batch_count = 500 # number of messages to fetch for each batch
 sleep_time  = 0.1 # time in seconds to sleep in between each batch
 
-publisher = Mosq::Client.new(max_in_flight: batch_count).start
+publisher = Mosq::Client.new.start
 
 while true
   batch = batch_count.times.map do |i|
