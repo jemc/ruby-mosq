@@ -7,3 +7,7 @@
 A Ruby [MQTT](http://mqtt.org/) client library based on [FFI](https://github.com/ffi/ffi/wiki) bindings for [libmosquitto](http://mosquitto.org/man/libmosquitto-3.html).
 
 ##### `$ gem install mosq`
+
+### System Requirements
+
+The `mosq` gem requires `libffi-dev`, as well as the [requirements for building libmosquitto](http://git.eclipse.org/c/mosquitto/org.eclipse.mosquitto.git/tree/compiling.txt).  Note that on Linux, the library will be built with `make`, though on Mac OS X `cmake` is required.
