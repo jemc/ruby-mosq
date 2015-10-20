@@ -37,6 +37,11 @@ describe Mosq::Client do
       subject.start
       subject.start
     end
+    
+    it "calls start_configure" do
+      subject.should_receive(:start_configure).with(no_args).and_call_original
+      subject.start
+    end
   end
   
   describe "close" do
@@ -79,6 +84,30 @@ describe Mosq::Client do
     subject.host    .should eq "host"
     subject.port    .should eq 1234
     subject.ssl?    .should eq false
+  end
+  
+  it "uses its options to configure the FFI client when started" do
+    subject = subject_class.new(
+      username:      (username      = "username"),
+      password:      (password      = "password"),
+      host:          (host          = "host"),
+      port:          (port          = 8899),
+      heartbeat:     (heartbeat     = 88),
+      max_in_flight: (max_in_flight = 99),
+    )
+    
+    ptr = subject.send(:ptr)
+    
+    Mosq::FFI.should_receive(:mosquitto_max_inflight_messages_set)
+             .with(ptr, max_in_flight) { :success }
+    
+    Mosq::FFI.should_receive(:mosquitto_username_pw_set)
+             .with(ptr, username, password) { :success }
+    
+    Mosq::FFI.should_receive(:mosquitto_connect)
+             .with(ptr, host, port, heartbeat) { :success }
+    
+    subject.send(:start_configure)
   end
   
   describe "when connected" do

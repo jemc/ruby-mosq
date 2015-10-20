@@ -58,17 +58,22 @@ module Mosq
     end
     private :ptr
     
-    # Initiate the connection with the server.
-    # It is necessary to call this before any other communication.
-    def start
+    def start_configure
       Util.error_check "configuring the maximum number of inflight messages",
         FFI.mosquitto_max_inflight_messages_set(ptr, @options[:max_in_flight])
       
       Util.error_check "configuring the username and password",
-        FFI.mosquitto_username_pw_set(ptr, @options[:usernam], @options[:password])
+        FFI.mosquitto_username_pw_set(ptr, @options[:username], @options[:password])
       
       Util.error_check "connecting to #{@options[:host]}",
         FFI.mosquitto_connect(ptr, @options[:host], @options[:port], @options[:heartbeat])
+    end
+    private :start_configure
+    
+    # Initiate the connection with the server.
+    # It is necessary to call this before any other communication.
+    def start
+      start_configure
       
       @ruby_socket = Socket.for_fd(FFI.mosquitto_socket(ptr))
       @ruby_socket.autoclose = false
